@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AHT Control Center</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root {
+    --bg-color:#09090b;
+    --card-bg:#13131a;
+    --border-color:#272733;
+    --text-main:#e0e0e0;
+    --text-muted:#8a8a9b;
+    --brand-primary:#8b5cf6;
+    --state-positive:#a78bfa;
+    --state-negative:#f87171;
+    --state-active:#34d399;
+    --btn-gradient:linear-gradient(135deg,#7c3aed,#6d28d9);
+}
+
+body{
+    background:var(--bg-color);
+    color:var(--text-main);
+    font-family:Inter,system-ui;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    margin:0;
+}
+
+.container{
+    background:var(--card-bg);
+    border-radius:24px;
+    padding:28px;
+    width:420px;
+    border:1px solid var(--border-color);
+    box-shadow:0 20px 40px rgba(0,0,0,.7);
+}
+
+h1{
+    text-align:center;
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:3px;
+    color:var(--text-muted);
+    margin-bottom:20px;
+}
+
+.settings{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+    color:var(--text-muted);
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+#aht-input{
+    background:#1a1a24;
+    border:1px solid var(--border-color);
+    color:var(--brand-primary);
+    font-weight:700;
+    width:60px;
+    text-align:center;
+    border-radius:10px;
+    padding:6px 8px;
+}
+
+#aht-input:focus{
+    outline:none;
+    border-color:var(--brand-primary);
+    box-shadow:0 0 0 2px rgba(139,92,246,.3);
+}
+
+#timer-display{
+    text-align:center;
+    font-size:4.5rem;
+    font-weight:800;
+    margin:10px 0;
+}
+
+#case-timer{
+    text-align:center;
+    font-size:2.8rem;
+    font-weight:700;
+    margin:10px 0 5px 0;
+    color:var(--state-active);
+}
+
+.positive{color:var(--state-positive)}
+.negative{color:var(--state-negative)}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:12px;
+    margin-top:12px;
+}
+
+.stat-card{
+    background:#1a1a24;
+    border:1px solid var(--border-color);
+    border-radius:14px;
+    padding:14px;
+    text-align:center;
+}
+
+.stat-label{
+    font-size:.7rem;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.stat-value{
+    font-size:1.4rem;
+    font-weight:700;
+    color:white;
+}
+
+/* CASE HISTORY */
+.case-history{
+    margin-top:12px;
+    background:#1a1a24;
+    border-radius:14px;
+    border:1px solid var(--border-color);
+    overflow:hidden;
+}
+
+.case-history-header{
+    padding:10px 14px;
+    font-size:.7rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--text-muted);
+    border-bottom:1px solid var(--border-color);
+    text-align:center;
+}
+
+.case-row{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 14px;
+    font-size:.85rem;
+    border-bottom:1px solid var(--border-color);
+}
+.case-row:last-child{border-bottom:none}
+
+.case-number{color:var(--text-muted)}
+.case-time{font-weight:700}
+
+.controls{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:15px;
+}
+
+button{
+    padding:14px;
+    border-radius:12px;
+    border:none;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.btn-add{
+    background:var(--btn-gradient);
+    color:white;
+}
+
+.btn-pause{
+    background:#272733;
+    color:white;
+}
+
+.btn-reset{
+    background:none;
+    color:var(--text-muted);
+}
+
+.footer-info{
+    margin-top:16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    font-size:.8rem;
+    color:var(--text-muted);
+}
+
+#clock{
+    color:var(--brand-primary);
+    font-weight:700;
+    font-size:1.4rem;
+    letter-spacing:2px;
+}
+
+#sound-btn{
+    background:none;
+    border:none;
+    color:var(--brand-primary);
+    font-size:22px;
+    cursor:pointer;
+    padding:0;
+}
+</style>
+</head>
+
+<body>
+
+<audio id="case-sound" src="https://assets.mixkit.co/active_storage/sfx/2947/2947-preview.mp3"></audio>
+
+<div class="container">
+<h1>AHT Control Center</h1>
+
+<div class="settings">
+    <span>Goal AHT</span>
+    <input type="number" id="aht-input" value="60">
+    <span>sec</span>
+</div>
+
+<div id="timer-display" class="positive">00:00</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Actual AHT</div>
+        <div class="stat-value" id="actual-aht">--</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Cases</div>
+        <div class="stat-value" id="case-progress">0 / 450</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Throughput</div>
+        <div class="stat-value" id="throughput">--</div>
+    </div>
+</div>
+
+<div id="case-timer">00:00</div>
+
+<div class="case-history">
+    <div class="case-history-header">Last 5 Cases</div>
+    <div id="case-table"></div>
+</div>
+
+<div class="controls">
+    <button class="btn-add" onclick="addCase()">+ New Case</button>
+    <button class="btn-pause" onclick="togglePause()">Start / Pause</button>
+    <button class="btn-reset" onclick="resetTimer()">Reset</button>
+</div>
+
+<div class="footer-info">
+    <div id="clock"></div>
+    <button id="sound-btn">🔊</button>
+</div>
+
+</div>
+
+<script>
+let balanceSeconds=0,totalSecondsWorked=0,caseSeconds=0,isRunning=false,interval=null,cases=0;
+let lastCaseTime=0,caseHistory=[],soundOn=true;
+
+const display=document.getElementById("timer-display");
+const caseTimer=document.getElementById("case-timer");
+const ahtInput=document.getElementById("aht-input");
+const actualAht=document.getElementById("actual-aht");
+const throughput=document.getElementById("throughput");
+const caseProgress=document.getElementById("case-progress");
+const caseTable=document.getElementById("case-table");
+const sound=document.getElementById("case-sound");
+const soundBtn=document.getElementById("sound-btn");
+
+function tick(){
+    balanceSeconds--;
+    totalSecondsWorked++;
+    caseSeconds++;
+    updateDisplay();
+    updateCaseTimer();
+    updateStats();
+}
+
+function startTimer(){
+    if(!isRunning){
+        interval=setInterval(tick,1000);
+        isRunning=true;
+    }
+}
+
+function togglePause(){
+    if(isRunning){clearInterval(interval);isRunning=false;}
+    else startTimer();
+}
+
+function addCase(){
+    if(soundOn){ sound.currentTime=0; sound.play(); }
+
+    if(cases>0){
+        const duration=totalSecondsWorked-lastCaseTime;
+        caseHistory.unshift({number:cases,time:duration});
+        if(caseHistory.length>5)caseHistory.pop();
+    }
+    lastCaseTime=totalSecondsWorked;
+
+    caseSeconds=0;
+    balanceSeconds+=parseInt(ahtInput.value)||60;
+    cases++;
+    caseProgress.textContent=`${cases} / 450`;
+    renderTable();
+    startTimer();
+}
+
+function renderTable(){
+    caseTable.innerHTML="";
+    const goal=parseInt(ahtInput.value)||60;
+
+    caseHistory.forEach(c=>{
+        const color=c.time<=goal?"#34d399":"#f87171";
+        const min=(c.time/60).toFixed(2);
+        caseTable.innerHTML+=`
+            <div class="case-row">
+                <span class="case-number">Case #${c.number}</span>
+                <span class="case-time" style="color:${color}">
+                    ${c.time}s <span style="opacity:.6;font-weight:500">(${min}m)</span>
+                </span>
+            </div>`;
+    });
+}
+
+function updateDisplay(){
+    let s=Math.abs(balanceSeconds);
+    display.textContent=(balanceSeconds<0?"-":"")+String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+    display.className=balanceSeconds>=0?"positive":"negative";
+}
+
+function updateCaseTimer(){
+    caseTimer.textContent=String(Math.floor(caseSeconds/60)).padStart(2,"0")+":"+String(caseSeconds%60).padStart(2,"0");
+}
+
+function updateStats(){
+    if(cases>0 && totalSecondsWorked>0){
+        actualAht.textContent=Math.round(totalSecondsWorked/cases);
+        throughput.textContent=((cases/totalSecondsWorked)*3600).toFixed(1);
+    } else {
+        actualAht.textContent="--";
+        throughput.textContent="--";
+    }
+}
+
+function resetTimer(){
+    clearInterval(interval);
+    isRunning=false;
+    balanceSeconds=0;
+    totalSecondsWorked=0;
+    caseSeconds=0;
+    cases=0;
+    lastCaseTime=0;
+    caseHistory=[];
+    caseProgress.textContent="0 / 450";
+    renderTable();
+    updateDisplay();
+    updateCaseTimer();
+    updateStats();
+}
+
+document.addEventListener("keydown",e=>{
+    if(e.key==="Enter") addCase();
+});
+
+soundBtn.onclick=()=>{
+    soundOn=!soundOn;
+    soundBtn.textContent=soundOn?"🔊":"🔇";
+};
+
+function updateClock(){
+    const now=new Date().toLocaleTimeString("es-CO",{timeZone:"America/Bogota"});
+    document.getElementById("clock").textContent=now;
+}
+setInterval(updateClock,1000);
+updateClock();
+
+window.addEventListener("beforeunload",e=>{
+    if(cases>0||totalSecondsWorked>0){
+        e.preventDefault();
+        e.returnValue="";
+    }
+});
+</script>
+
+</body>
+</html>
